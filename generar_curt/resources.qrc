@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/GENERAR_CURT" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
