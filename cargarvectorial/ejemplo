@@ -1,0 +1,66 @@
+    def run(self):
+        """Run method that performs all the real work"""
+        # Crear una ventana de mensaje
+        msg_box = QMessageBox(self.iface.mainWindow())
+        msg_box.setWindowTitle("Detectando vectores....")
+        msg_box.setText("Este mensaje se cerrará en 10 segundos.")
+
+        # Crear una barra de progreso para mostrar la duración restante
+        progress_bar = QProgressBar(msg_box)
+        msg_box.layout().addWidget(progress_bar)
+        progress_bar.setRange(0, 1000)
+        progress_bar.setValue(0)
+
+        # Mostrar el cuadro de mensaje
+        msg_box.show()
+
+        # Iniciar temporizador para cerrar la ventana de mensaje después de 10 segundos
+        timer = QTimer(msg_box)
+        timer.timeout.connect(msg_box.close)
+        timer.start(10000)
+
+        ruta_capas = r'D:\PLUGIN_CARGA_CAPAS'
+        ruta_manzanas = 'manzanas_corte.shp'
+        ruta_vialidades = 'vialidades_corte.shp'
+
+        # Cargar capa de manzanas
+        capa_manzanas = QgsVectorLayer(ruta_capas + '\\' + ruta_manzanas, 'Manzanas', 'ogr')
+        if not capa_manzanas.isValid():
+            print('Error al cargar la capa de manzanas')
+        else:
+            # Establecer símbolo para polígonos con contorno café
+            simbolo_manzanas = QgsSymbol.defaultSymbol(capa_manzanas.geometryType())
+
+            if simbolo_manzanas.symbolLayerCount() > 0:
+                symbol_layer = simbolo_manzanas.symbolLayer(0)
+                if isinstance(symbol_layer, QgsSimpleFillSymbolLayer):
+                    # symbol_layer.setStrokeColor(QgsSymbolLayerUtils.parseColor('rgb(139, 69, 19)'))
+                    symbol_layer.setStrokeColor(QgsSymbolLayerUtils.parseColor('blue'))
+                    symbol_layer.setStrokeWidth(1)
+                    symbol_layer.setColor(QgsSymbolLayerUtils.parseColor('rgba(0,0,0,0)'))  # Relleno transparente
+
+            capa_manzanas.renderer().setSymbol(simbolo_manzanas)
+
+            # Agregar capa al proyecto
+            QgsProject.instance().addMapLayer(capa_manzanas)
+
+        # Cargar capa de vialidades
+        capa_vialidades = QgsVectorLayer(ruta_capas + '\\' + ruta_vialidades, 'Vialidades', 'ogr')
+        if not capa_vialidades.isValid():
+            print('Error al cargar la capa de vialidades')
+        else:
+            # Establecer símbolo para líneas con grosor rojo de 1 mm
+            simbolo_vialidades = QgsSymbol.defaultSymbol(capa_vialidades.geometryType())
+
+            if simbolo_vialidades.symbolLayerCount() > 0:
+                symbol_layer = simbolo_vialidades.symbolLayer(0)
+                if isinstance(symbol_layer, QgsSimpleLineSymbolLayer):
+                    symbol_layer.setColor(QgsSymbolLayerUtils.parseColor('red'))
+                    symbol_layer.setWidth(1)
+
+            capa_vialidades.renderer().setSymbol(simbolo_vialidades)
+
+            # Agregar capa al proyecto
+            QgsProject.instance().addMapLayer(capa_vialidades)
+
+        print('Capas cargadas exitosamente.')
